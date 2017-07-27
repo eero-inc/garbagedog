@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from enum import Enum
 from typing import Tuple, Optional
+from datadog.dogstatsd.base import DogStatsd
 
 three_arrows_regex = re.compile("->.*->.*->", re.MULTILINE)
 size_regex = re.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}[+]0000):"
@@ -21,7 +22,6 @@ times_regex = re.compile(".*real=([0-9][0-9]*[.][0-9][0-9]*) secs\]\s*", re.MULT
 
 timeformat = "%Y-%m-%dT%H:%M:%S.%f%z"
 
-from datadog.dogstatsd.base import DogStatsd
 
 class GCEventType(Enum):
     Unknown = 0
@@ -51,7 +51,7 @@ def is_stop_the_world(event_type: GCEventType) -> bool:
 
 class GCSizeInfo:
     def __init__(self, young_begin_k: str, young_end_k: str, young_total_k: str,
-                 whole_heap_begin_k:str , whole_heap_end_k:str , whole_heap_total_k: str):
+                 whole_heap_begin_k:str , whole_heap_end_k: str, whole_heap_total_k: str):
         self.young_begin_k = int(young_begin_k)
         self.young_end_k = int(young_end_k)
         self.young_total_k = int(young_total_k)
@@ -127,8 +127,8 @@ def classify_gc_event_type_for_size(line: str) -> GCEventType:
 
 
 class GCEventProcessor:
-    def __init__(self):
-        self.stats = DogStatsd(host='localhost', port=8125)
+    def __init__(self, dogstatsd_host, dogstatsd_port, extra_tags, verbose):
+        self.stats = DogStatsd(host=dogstatsd_host, port=dogstatsd_port, constant_tags=extra_tags)
         self.last_size_info = None
         self.last_minor_time = None
         self.last_major_time = None
@@ -150,7 +150,8 @@ class GCEventProcessor:
 
     def process_eventline(self, stripped_line: str):
         if stripped_line is not "":
-            print("event detected")
+            if self.verbose:
+                print("event detected")
 
             self.process_for_frequency_stats(stripped_line)
 
@@ -172,8 +173,8 @@ class GCEventProcessor:
                 self.last_size_info = size_info
 
 
-def main():
-    processor = GCEventProcessor()
+def main(dogstatsd_host, dogstatsd_port, extra_tags, verbose):
+    processor = GCEventProcessor(dogstatsd_host, dogstatsd_port, [], verbose)
     previous_record = ""
     while True:
         inline = sys.stdin.readline()
@@ -200,4 +201,4 @@ def main():
 
 if __name__ == "__main__":
     # execute only if run as a script
-    main()
+    main("localhost", 8125, [], False)
