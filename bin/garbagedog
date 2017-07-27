@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
-from garbagedog.gc_log_parsing import parse
+from garbagedog.gc_log_parsing import parse_and_emit_stats
 
 parser = argparse.ArgumentParser(description='Send GC stats over dogstatsd')
 parser.add_argument('--tags', type=str, required=False,
@@ -9,4 +9,4 @@ parser.add_argument('--tags', type=str, required=False,
 
 
 args = parser.parse_args()
-parse.main()
+parse_and_emit_stats.main()

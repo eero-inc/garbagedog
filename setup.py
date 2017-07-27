@@ -3,15 +3,15 @@ from setuptools import setup, find_packages
 
 
 # Get the long description from the readme
-#with codecs_open('README.md', encoding='utf-8') as f:
-#    long_description = f.read()
+with codecs_open('README.md', encoding='utf-8') as f:
+    long_description = f.read()
 
 
 setup(
     name='garbagedog',
     version='0.0.1',
     description='Parse JVM gc.logs and emit stats over dogstatsd',
-    #long_description=long_description,
+    long_description=long_description,
     author='Will Bertelsen',
     author_email='willb@eero.com',
     url='https://github.com/eero-inc/garbagedog',

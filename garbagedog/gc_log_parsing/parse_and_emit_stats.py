@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 import re
 import sys
@@ -49,8 +50,8 @@ def is_stop_the_world(event_type: GCEventType) -> bool:
 
 
 class GCSizeInfo:
-    def __init__(self, young_begin_k, young_end_k, young_total_k,
-                 whole_heap_begin_k, whole_heap_end_k, whole_heap_total_k):
+    def __init__(self, young_begin_k: str, young_end_k: str, young_total_k: str,
+                 whole_heap_begin_k:str , whole_heap_end_k:str , whole_heap_total_k: str):
         self.young_begin_k = int(young_begin_k)
         self.young_end_k = int(young_end_k)
         self.young_total_k = int(young_total_k)
@@ -132,8 +133,7 @@ class GCEventProcessor:
         self.last_minor_time = None
         self.last_major_time = None
 
-
-    def process_for_frequency_stats(self, stripped_line):
+    def process_for_frequency_stats(self, stripped_line: str):
         line_time_match = absolute_time_regex.match(stripped_line)
         if line_time_match:
             line_time = datetime.strptime(line_time_match.group(1), timeformat)
@@ -148,7 +148,7 @@ class GCEventProcessor:
                     self.stats.histogram("garbagedog_time_between_young_gc", elapsed)
                 self.last_minor_time = line_time
 
-    def process_eventline(self, stripped_line):
+    def process_eventline(self, stripped_line: str):
         if stripped_line is not "":
             print("event detected")
 
