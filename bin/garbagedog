@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+
+import argparse
+
+from garbagedog import parse_and_emit_stats
+
+parser = argparse.ArgumentParser(description='Send GC stats over dogstatsd',
+                                 usage="tail -f `ls  -rt  /var/log/eero/gc* | tail -n 1` | garbagedog")
+
+parser.add_argument('--tags', type=str, required=False,
+                    help='Extra datadog tags, comma separated; ie "application:actorcluster, version:7017.07.27"')
+
+parser.add_argument('--dogstatsd-host', type=str, required=False,
+                    help='dogstatsd host (default=localhost)', default='localhost')
+parser.add_argument('--dogstatsd-port', type=int, required=False,
+                    help='dogstatsd port (default=8125)', default=8125)
+parser.add_argument('--verbose', action='store_true',
+                    help='Emit noisy messages on stdout')
+
+args = parser.parse_args()
+
+parse_and_emit_stats.main(args.dogstatsd_host, args.dogstatsd_port, args.tags, args.verbose)
