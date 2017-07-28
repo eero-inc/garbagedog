@@ -28,3 +28,26 @@ optional arguments:
 ```
 
 Made for eero Hack Week 2017 - ps we're hiring! https://eero.com/jobs
+
+
+## Development
+
+```
+git clone git@github.com:eero-inc/garbagedog.git
+cd garbagedog
+virtualenv --python=python3 ENV
+source ENV/bin/activate
+pip install -e .
+```
+
+## Building an executable pex
+On your targeted environment check out the source and build
+```
+git clone git@github.com:eero-inc/garbagedog.git
+cd garbagedog
+virtualenv --python=python3 ENV
+source ENV/bin/activate
+pip install pex
+./build.sh
+
+```
