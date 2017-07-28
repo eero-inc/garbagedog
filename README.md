@@ -20,3 +20,5 @@ optional arguments:
   --dogstatsd-port DOGSTATSD_PORT
                         dogstatsd port (default=8125)
 ```
+
+Made for eero Hack Week 2017 - ps we're hiring! https://eero.com/jobs
