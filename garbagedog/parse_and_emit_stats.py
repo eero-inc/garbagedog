@@ -9,7 +9,6 @@ from typing import Tuple, Optional
 from datadog.dogstatsd.base import DogStatsd
 
 # These regexes are modified from https://github.com/Netflix-Skunkworks/gcviz, Copyright 2013 Netflix, under APACHE 2.0
-
 three_arrows_regex = re.compile("->.*->.*->", re.MULTILINE)
 size_regex = re.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}[+]0000):"
                         " ([0-9]+[.][0-9]{3}): .* ([0-9]+)K->([0-9]+)K\(([0-9]+)K\).*"
@@ -179,8 +178,8 @@ class GCEventProcessor:
                 self.last_size_info = size_info
 
 
-def main(dogstatsd_host, dogstatsd_port, extra_tags, verbose):
-    processor = GCEventProcessor(dogstatsd_host, dogstatsd_port, [], verbose)
+def main(dogstatsd_host, dogstatsd_port, extra_tags=[], verbose=False):
+    processor = GCEventProcessor(dogstatsd_host, dogstatsd_port, extra_tags, verbose)
     previous_record = ""
     while True:
         inline = sys.stdin.readline()
@@ -207,4 +206,4 @@ def main(dogstatsd_host, dogstatsd_port, extra_tags, verbose):
 
 if __name__ == "__main__":
     # execute only if run as a script
-    main("localhost", 8125, [], False)
+    main("localhost", 8125)

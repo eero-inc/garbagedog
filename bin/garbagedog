@@ -19,4 +19,8 @@ parser.add_argument('--verbose', action='store_true',
 
 args = parser.parse_args()
 
-parse_and_emit_stats.main(args.dogstatsd_host, args.dogstatsd_port, args.tags, args.verbose)
+parsed_tags = []
+if args.tags:
+    parsed_tags = args.tags.replace(' ', '').split(',')
+
+parse_and_emit_stats.main(args.dogstatsd_host, args.dogstatsd_port, parsed_tags, args.verbose)
