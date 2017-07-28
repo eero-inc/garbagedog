@@ -9,7 +9,7 @@ with codecs_open('README.md', encoding='utf-8') as f:
 
 setup(
     name='garbagedog',
-    version='0.0.2',
+    version='0.0.3',
     description='Parse JVM gc.logs and emit stats over dogstatsd',
     long_description=long_description,
     author='Will Bertelsen',
