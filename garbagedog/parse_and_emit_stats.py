@@ -5,7 +5,6 @@ import sys
 from datetime import datetime
 from enum import Enum
 from typing import Tuple, Optional
-from datadog.dogstatsd.base import DogStatsd
 
 from datadog.dogstatsd.base import DogStatsd
 
