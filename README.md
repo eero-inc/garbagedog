@@ -6,6 +6,7 @@ Parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
 
 
 ## Usage
+```
 usage: tail -f `ls  -rt  /var/log/eero/gc* | tail -n 1` | garbagedog
 
 Send GC stats over dogstatsd
@@ -18,3 +19,4 @@ optional arguments:
                         dogstatsd host (default=localhost)
   --dogstatsd-port DOGSTATSD_PORT
                         dogstatsd port (default=8125)
+```
