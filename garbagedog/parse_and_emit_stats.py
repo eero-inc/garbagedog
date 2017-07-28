@@ -132,6 +132,7 @@ class GCEventProcessor:
         self.last_size_info = None
         self.last_minor_time = None
         self.last_major_time = None
+        self.verbose = verbose
 
     def process_for_frequency_stats(self, stripped_line: str):
         line_time_match = absolute_time_regex.match(stripped_line)
