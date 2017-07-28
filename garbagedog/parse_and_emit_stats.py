@@ -7,6 +7,10 @@ from enum import Enum
 from typing import Tuple, Optional
 from datadog.dogstatsd.base import DogStatsd
 
+from datadog.dogstatsd.base import DogStatsd
+
+# These regexes are modified from https://github.com/Netflix-Skunkworks/gcviz, Copyright 2013 Netflix, under APACHE 2.0
+
 three_arrows_regex = re.compile("->.*->.*->", re.MULTILINE)
 size_regex = re.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}[+]0000):"
                         " ([0-9]+[.][0-9]{3}): .* ([0-9]+)K->([0-9]+)K\(([0-9]+)K\).*"
@@ -46,12 +50,14 @@ def is_stop_the_world(event_type: GCEventType) -> bool:
                           GCEventType.CMS_remark,
                           GCEventType.concurrent_mode_failure,
                           GCEventType.promotion_failed,
-                          GCEventType.ParNew]
+                          GCEventType.ParNew,
+                          GCEventType.PSYoungGen,
+                          GCEventType.DefNew]
 
 
 class GCSizeInfo:
     def __init__(self, young_begin_k: str, young_end_k: str, young_total_k: str,
-                 whole_heap_begin_k:str , whole_heap_end_k: str, whole_heap_total_k: str):
+                 whole_heap_begin_k: str, whole_heap_end_k: str, whole_heap_total_k: str):
         self.young_begin_k = int(young_begin_k)
         self.young_end_k = int(young_end_k)
         self.young_total_k = int(young_total_k)
