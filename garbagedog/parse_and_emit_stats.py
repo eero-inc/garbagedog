@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
-import re
+import glob
 import sys
+import time
 from datetime import datetime
 from enum import Enum
-from typing import Tuple, Optional
 
+import os
+import re
 from datadog.dogstatsd.base import DogStatsd
+from typing import Tuple, Optional
 
 # These regexes are modified from https://github.com/Netflix-Skunkworks/gcviz, Copyright 2013 Netflix, under APACHE 2.0
 three_arrows_regex = re.compile("->.*->.*->", re.MULTILINE)
@@ -55,7 +58,7 @@ def is_stop_the_world(event_type: GCEventType) -> bool:
 
 class GCSizeInfo:
     def __init__(self, young_begin_k: str, young_end_k: str, young_total_k: str,
-                 whole_heap_begin_k: str, whole_heap_end_k: str, whole_heap_total_k: str):
+                 whole_heap_begin_k: str, whole_heap_end_k: str, whole_heap_total_k: str) -> None:
         self.young_begin_k = int(young_begin_k)
         self.young_end_k = int(young_end_k)
         self.young_total_k = int(young_total_k)
@@ -156,7 +159,7 @@ class GCEventProcessor:
     def process_eventline(self, stripped_line: str):
         if stripped_line is not "":
             if self.verbose:
-                print("event detected")
+                print('.', end='', flush=True)
 
             self.process_for_frequency_stats(stripped_line)
 
@@ -178,32 +181,90 @@ class GCEventProcessor:
                 self.last_size_info = size_info
 
 
-def main(dogstatsd_host, dogstatsd_port, extra_tags=[], verbose=False):
+def get_newest_log(log_dir: str) -> str:
+    gc_logs = list(glob.iglob(os.path.join(log_dir, 'gc*')))
+
+    if len(gc_logs) == 0:
+        print("No gc logs found in {}".format(log_dir))
+        sys.exit(1)
+
+    return max(gc_logs, key=os.path.getctime)
+
+
+def process_line(processor, inline, previous_record):
+    stripped_line = inline.rstrip('\n')
+
+    conflated_relative = conflated_relative_regex.match(stripped_line)
+    conflated_absolute = conflated_absolute_regex.match(stripped_line)
+
+    if absolute_time_regex.match(stripped_line) or relative_time_regex.match(stripped_line):
+        processor.process_eventline(previous_record)
+        previous_record = stripped_line
+    elif conflated_relative:
+        previous_record = previous_record + conflated_relative.group(1)
+        processor.process_eventline(previous_record)
+        previous_record = conflated_relative.group(2)
+    elif conflated_absolute:
+        previous_record = previous_record + conflated_absolute.group(1)
+        processor.process_eventline(previous_record)
+        previous_record = conflated_absolute.group(2)
+    else:
+        previous_record = previous_record + " " + stripped_line
+
+    return previous_record
+
+
+def from_log_dir(
+        log_directory,
+        dogstatsd_host,
+        dogstatsd_port,
+        extra_tags=None,
+        verbose=False,
+        refresh_logfiles_seconds=60,
+        sleep_seconds=1) -> None:
+
+    processor = GCEventProcessor(dogstatsd_host, dogstatsd_port, extra_tags, verbose)
+
+    previous_record = ""
+    last_new_line_seen = datetime.utcfromtimestamp(0)
+    log_file = None
+
+    try:
+        while True:
+            # gc.logs rotate, so if we dont see output for a while, we should make sure were reading the newest file
+            if (datetime.now() - last_new_line_seen).total_seconds() > refresh_logfiles_seconds:
+                print('')
+                if verbose:
+                    print("Last line seen {} seconds ago!"
+                          .format((datetime.now() - last_new_line_seen).total_seconds()))
+                if log_file:
+                    log_file.close()
+                newest_log = get_newest_log(log_directory)
+                if verbose:
+                    print("Now reading from: {}!".format(newest_log))
+
+                log_file = open(newest_log)
+                log_file.seek(0, 2)  # seek to EOF
+                last_new_line_seen = datetime.now()
+
+            line = log_file.readline()
+
+            if not line:
+                time.sleep(sleep_seconds)
+                continue
+            else:
+                last_new_line_seen = datetime.now()
+                previous_record = process_line(processor, line, previous_record)
+    finally:
+        if log_file:
+            log_file.close()
+
+
+def from_stdin(dogstatsd_host, dogstatsd_port, extra_tags=None, verbose=False):
     processor = GCEventProcessor(dogstatsd_host, dogstatsd_port, extra_tags, verbose)
     previous_record = ""
     while True:
         inline = sys.stdin.readline()
         if not inline:
             break
-        stripped_line = inline.rstrip('\n')
-
-        conflated_relative = conflated_relative_regex.match(stripped_line)
-        conflated_absolute = conflated_absolute_regex.match(stripped_line)
-
-        if absolute_time_regex.match(stripped_line) or relative_time_regex.match(stripped_line):
-            processor.process_eventline(previous_record)
-            previous_record = stripped_line
-        elif conflated_relative:
-            previous_record = previous_record + conflated_relative.group(1)
-            processor.process_eventline(previous_record)
-            previous_record = conflated_relative.group(2)
-        elif conflated_absolute:
-            previous_record = previous_record + conflated_absolute.group(1)
-            processor.process_eventline(previous_record)
-            previous_record = conflated_absolute.group(2)
-        else:
-            previous_record = previous_record + " " + stripped_line
-
-if __name__ == "__main__":
-    # execute only if run as a script
-    main("localhost", 8125)
+        previous_record = process_line(processor, inline, previous_record)
