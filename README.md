@@ -13,18 +13,20 @@ Requires python 3.4
 
 ## Usage
 ```
-usage: tail -f `ls  -rt  /var/log/eero/gc* | tail -n 1` | garbagedog
+usage: garbagedog --log-dir /var/log/eero/
 
 Send GC stats over dogstatsd
 
 optional arguments:
   -h, --help            show this help message and exit
   --tags TAGS           Extra datadog tags, comma separated; ie
-                        "application:actorcluster, version:7017.07.27"
+                        "application:actorcluster, version:2017.07.27"
   --dogstatsd-host DOGSTATSD_HOST
                         dogstatsd host (default=localhost)
   --dogstatsd-port DOGSTATSD_PORT
                         dogstatsd port (default=8125)
+  --verbose             Emit noisy messages on stdout
+  --log-dir LOG_DIR     Read from this log dir instead of stdin
 ```
 
 ## Development
@@ -36,6 +38,17 @@ virtualenv --python=python3 ENV
 source ENV/bin/activate
 pip install -e .
 ```
+
+## Testing
+
+```
+git clone git@github.com:eero-inc/garbagedog.git
+cd garbagedog
+virtualenv --python=python3 ENV
+source ENV/bin/activate
+./test.sh
+```
+
 
 ## Building an executable pex
 On your targeted environment check out the source and build
