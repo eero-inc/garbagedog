@@ -4,7 +4,7 @@ import argparse
 
 from garbagedog import parse_and_emit_stats
 
-parser = argparse.ArgumentParser(description='Send GC stats over dogstatsd',
+parser = argparse.ArgumentParser(description='Parse JVM gc.logs and emit stats over dogstatsd',
                                  usage="garbagedog --log-dir /var/log/eero/")
 
 parser.add_argument('--tags',
@@ -12,12 +12,25 @@ parser.add_argument('--tags',
 
 parser.add_argument('--dogstatsd-host',
                     help='dogstatsd host (default=localhost)', default='localhost')
+
 parser.add_argument('--dogstatsd-port', type=int,
                     help='dogstatsd port (default=8125)', default=8125)
+
 parser.add_argument('--verbose', action='store_true',
                     help='Emit noisy messages on stdout')
+
 parser.add_argument('--log-dir',
                     help='Read from this log dir instead of stdin')
+
+parser.add_argument('--glob-pattern',
+                    help='Glob pattern to select gc.log files', default="gc.log*")
+
+parser.add_argument('--refresh-logfiles-seconds', type=int,
+                    help='How often to recheck --log-dir if there are no logfiles found '
+                         'or no new loglines have been written', default=60)
+
+parser.add_argument('--sleep-seconds', type=int,
+                    help='How long to sleep between checking the logfile for new lines', default=1)
 
 args = parser.parse_args()
 
@@ -26,6 +39,20 @@ if args.tags:
     parsed_tags = args.tags.replace(' ', '').split(',')
 
 if args.log_dir:
-    parse_and_emit_stats.from_log_dir(args.log_dir, args.dogstatsd_host, args.dogstatsd_port, parsed_tags, args.verbose)
+    parse_and_emit_stats.from_log_dir(
+        log_directory=args.log_dir,
+        dogstatsd_host=args.dogstatsd_host,
+        dogstatsd_port=args.dogstatsd_port,
+        extra_tags=parsed_tags,
+        verbose=args.verbose,
+        glob_pattern=args.glob_pattern,
+        refresh_logfiles_seconds=args.refresh_logfiles_seconds,
+        sleep_seconds=args.sleep_seconds
+    )
 else:
-    parse_and_emit_stats.from_stdin(args.dogstatsd_host, args.dogstatsd_port, parsed_tags, args.verbose)
+    parse_and_emit_stats.from_stdin(
+        args.dogstatsd_host,
+        args.dogstatsd_port,
+        parsed_tags,
+        args.verbose
+    )
