@@ -2,7 +2,7 @@
 
 import argparse
 
-from garbagedog import parse_and_emit_stats
+from garbagedog.event_processor import GCEventProcessor
 
 parser = argparse.ArgumentParser(description='Parse JVM gc.logs and emit stats over dogstatsd',
                                  usage="garbagedog --log-dir /var/log/eero/")
@@ -38,21 +38,14 @@ parsed_tags = []
 if args.tags:
     parsed_tags = args.tags.replace(' ', '').split(',')
 
-if args.log_dir:
-    parse_and_emit_stats.from_log_dir(
-        log_directory=args.log_dir,
-        dogstatsd_host=args.dogstatsd_host,
-        dogstatsd_port=args.dogstatsd_port,
-        extra_tags=parsed_tags,
-        verbose=args.verbose,
-        glob_pattern=args.glob_pattern,
-        refresh_logfiles_seconds=args.refresh_logfiles_seconds,
-        sleep_seconds=args.sleep_seconds
-    )
-else:
-    parse_and_emit_stats.from_stdin(
-        args.dogstatsd_host,
-        args.dogstatsd_port,
-        parsed_tags,
-        args.verbose
-    )
+gc_event_processor = GCEventProcessor(args.dogstatsd_host, args.dogstatsd_port, parsed_tags, args.verbose)
+try:
+    if args.log_dir:
+        gc_event_processor.process_log_directory(args.log_dir,
+                                                 glob_pattern=args.glob_pattern,
+                                                 refresh_logfiles_seconds=args.refresh_logfiles_seconds,
+                                                 sleep_seconds=args.sleep_seconds)
+    else:
+        gc_event_processor.process_stdin()
+except KeyboardInterrupt:
+    pass
