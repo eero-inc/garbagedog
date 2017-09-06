@@ -46,7 +46,10 @@ git clone git@github.com:eero-inc/garbagedog.git
 cd garbagedog
 virtualenv --python=python3 ENV
 source ENV/bin/activate
+pip install -r dev_requirements.txt
+
 ./test.sh
+pytest
 ```
 
 
