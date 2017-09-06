@@ -47,7 +47,10 @@ class GCLogHandler(object):
         if self.log_file:
             self.log_file.close()
 
-    def get_next_log_line(self):
+    def __iter__(self):
+        return self.get_log_lines()
+
+    def get_log_lines(self):
         """
         Generator that returns the next log line. If there are no new log lines, this will sleep for `sleep_time` seconds.
         If the log file is not updated after `refresh_logfiles_seconds` and a new log file exists, the new log file will

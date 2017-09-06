@@ -46,7 +46,7 @@ class GCEventProcessor(object):
                           sleep_seconds=sleep_seconds,
                           verbose=self.verbose) as log_handler:
             previous_record = ""
-            for line in log_handler.get_next_log_line():
+            for line in log_handler:
                 previous_record = self._process_line(line, previous_record)
 
     def process_stdin(self):
@@ -96,7 +96,7 @@ class GCEventProcessor(object):
                     last_event_time, last_size_info = self.last_time_and_size_info
                     elapsed = (event_time - last_event_time).total_seconds()
                     bytes_added = size_info.whole_heap_begin_k - last_size_info.whole_heap_end_k
-                    self.stats.histogram("garbagedog_allocation_rate_histogram", float(bytes_added) / float(elapsed))
+                    self.stats.histogram("garbagedog_allocation_rate_histogram", bytes_added / elapsed)
                 self.last_time_and_size_info = (timestamp, size_info)
 
     def _process_line(self, inline, previous_record):

@@ -50,12 +50,13 @@ def test_gc_log_handler(tmpdir):
     gc_log.write("")
 
     with GCLogHandler(os.path.join(tmpdir, "logs/")) as gc_log_handler:
+        log_line_generator = gc_log_handler.get_log_lines()
         gc_log.write("hello world")
-        line = next(gc_log_handler.get_next_log_line())
+        line = next(log_line_generator)
         assert line == "hello world"
 
         gc_log.write("foo", mode="a")
-        line = next(gc_log_handler.get_next_log_line())
+        line = next(log_line_generator)
         assert line == "foo"
 
 def test_gc_log_handler_newest_log(tmpdir):
@@ -70,5 +71,5 @@ def test_gc_log_handler_newest_log(tmpdir):
     with GCLogHandler(os.path.join(tmpdir, "logs/")) as gc_log_handler:
         gc_log.write("foo")
         gc_log_2.write("bar")
-        line = next(gc_log_handler.get_next_log_line())
+        line = next(gc_log_handler.get_log_lines())
         assert line == "bar"
