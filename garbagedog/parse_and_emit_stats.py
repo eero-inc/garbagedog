@@ -9,7 +9,7 @@ from enum import Enum
 import os
 import re
 from datadog.dogstatsd.base import DogStatsd
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List
 
 # These regexes are modified from https://github.com/Netflix-Skunkworks/gcviz, Copyright 2013 Netflix, under APACHE 2.0
 three_arrows_regex = re.compile("->.*->.*->", re.MULTILINE)
@@ -134,14 +134,19 @@ def classify_gc_event_type_for_size(line: str) -> GCEventType:
 
 
 class GCEventProcessor:
-    def __init__(self, dogstatsd_host, dogstatsd_port, extra_tags, verbose):
+    def __init__(
+            self,
+            dogstatsd_host: str,
+            dogstatsd_port: int,
+            extra_tags: Optional[List[str]] = None,
+            verbose: bool = False) -> None:
         self.stats = DogStatsd(host=dogstatsd_host, port=dogstatsd_port, constant_tags=extra_tags)
-        self.last_size_info = None
-        self.last_minor_time = None
-        self.last_major_time = None
+        self.last_size_info = None  # type: Optional[Tuple[datetime, GCSizeInfo]]
+        self.last_minor_time = None  # type: datetime
+        self.last_major_time = None  # type: datetime
         self.verbose = verbose
 
-    def process_for_frequency_stats(self, stripped_line: str):
+    def process_for_frequency_stats(self, stripped_line: str) -> None:
         line_time_match = absolute_time_regex.match(stripped_line)
         if line_time_match:
             line_time = datetime.strptime(line_time_match.group(1), timeformat)
@@ -156,7 +161,7 @@ class GCEventProcessor:
                     self.stats.histogram("garbagedog_time_between_young_gc", elapsed)
                 self.last_minor_time = line_time
 
-    def process_eventline(self, stripped_line: str):
+    def process_eventline(self, stripped_line: str) -> None:
         if stripped_line is not "":
             if self.verbose:
                 print('.', end='', flush=True)
@@ -181,17 +186,15 @@ class GCEventProcessor:
                 self.last_size_info = size_info
 
 
-def get_newest_log(log_dir: str) -> str:
-    gc_logs = list(glob.iglob(os.path.join(log_dir, 'gc*')))
-
+def get_newest_log(log_dir: str, glob_pattern) -> Optional[str]:
+    gc_logs = list(glob.iglob(os.path.join(log_dir, glob_pattern)))
     if len(gc_logs) == 0:
-        print("No gc logs found in {}".format(log_dir))
-        sys.exit(1)
-
+        return None
     return max(gc_logs, key=os.path.getctime)
 
 
-def process_line(processor, inline, previous_record):
+# This line merging approach is also from Netflix gcviz
+def process_line(processor, inline, previous_record) -> str:
     stripped_line = inline.rstrip('\n')
 
     conflated_relative = conflated_relative_regex.match(stripped_line)
@@ -215,13 +218,14 @@ def process_line(processor, inline, previous_record):
 
 
 def from_log_dir(
-        log_directory,
-        dogstatsd_host,
-        dogstatsd_port,
-        extra_tags=None,
-        verbose=False,
-        refresh_logfiles_seconds=60,
-        sleep_seconds=1) -> None:
+        log_directory: str,
+        dogstatsd_host: str,
+        dogstatsd_port: int,
+        extra_tags: Optional[List[str]] = None,
+        glob_pattern: str = "gc.log*",
+        refresh_logfiles_seconds: int = 60,
+        sleep_seconds: int = 1,
+        verbose: bool = False) -> None:
 
     processor = GCEventProcessor(dogstatsd_host, dogstatsd_port, extra_tags, verbose)
 
@@ -233,19 +237,23 @@ def from_log_dir(
         while True:
             # gc.logs rotate, so if we dont see output for a while, we should make sure were reading the newest file
             if (datetime.now() - last_new_line_seen).total_seconds() > refresh_logfiles_seconds:
-                print('')
-                if verbose:
-                    print("Last line seen {} seconds ago!"
-                          .format((datetime.now() - last_new_line_seen).total_seconds()))
+                printv('', verbose)
+                printv("Last line seen {} seconds ago!"
+                       .format((datetime.now() - last_new_line_seen).total_seconds()), verbose)
                 if log_file:
                     log_file.close()
-                newest_log = get_newest_log(log_directory)
-                if verbose:
-                    print("Now reading from: {}!".format(newest_log))
+                newest_log = get_newest_log(log_directory, glob_pattern)
+                if newest_log:
+                    printv("Now reading from: {}!".format(newest_log), verbose)
 
-                log_file = open(newest_log)
-                log_file.seek(0, 2)  # seek to EOF
-                last_new_line_seen = datetime.now()
+                    log_file = open(newest_log)
+                    log_file.seek(0, 2)  # seek to EOF
+                    last_new_line_seen = datetime.now()
+                else:
+                    printv("No logfiles found in {}, sleeping for {} seconds"
+                           .format(log_directory, refresh_logfiles_seconds), verbose)
+                    time.sleep(refresh_logfiles_seconds)
+                    continue
 
             line = log_file.readline()
 
@@ -260,7 +268,11 @@ def from_log_dir(
             log_file.close()
 
 
-def from_stdin(dogstatsd_host, dogstatsd_port, extra_tags=None, verbose=False):
+def from_stdin(
+        dogstatsd_host: str,
+        dogstatsd_port: int,
+        extra_tags: Optional[List[str]] = None,
+        verbose: bool = False) -> None:
     processor = GCEventProcessor(dogstatsd_host, dogstatsd_port, extra_tags, verbose)
     previous_record = ""
     while True:
@@ -268,3 +280,8 @@ def from_stdin(dogstatsd_host, dogstatsd_port, extra_tags=None, verbose=False):
         if not inline:
             break
         previous_record = process_line(processor, inline, previous_record)
+
+
+def printv(line: str, verbose: bool) -> None:
+    if verbose:
+        print(line)
