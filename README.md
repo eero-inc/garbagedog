@@ -15,7 +15,7 @@ Requires python 3.4
 ```
 usage: garbagedog --log-dir /var/log/eero/
 
-Send GC stats over dogstatsd
+Parse JVM gc.logs and emit stats over dogstatsd
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -27,6 +27,14 @@ optional arguments:
                         dogstatsd port (default=8125)
   --verbose             Emit noisy messages on stdout
   --log-dir LOG_DIR     Read from this log dir instead of stdin
+  --glob-pattern GLOB_PATTERN
+                        Glob pattern to select gc.log files
+  --refresh-logfiles-seconds REFRESH_LOGFILES_SECONDS
+                        How often to recheck --log-dir if there are no
+                        logfiles found or no new loglines have been written
+  --sleep-seconds SLEEP_SECONDS
+                        How long to sleep between checking the logfile for new
+                        lines
 ```
 
 ## Development
