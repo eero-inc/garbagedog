@@ -3,6 +3,7 @@ import glob
 import os
 import sys
 import time
+from typing import Tuple, Optional, List
 
 from datadog.dogstatsd.base import DogStatsd
 
@@ -14,7 +15,11 @@ from .utils import parse_line_for_times, parse_line_for_sizes
 
 class GCEventProcessor(object):
 
-    def __init__(self, dogstatsd_host, dogstatsd_port, extra_tags, verbose=False):
+    def __init__(self,
+                 dogstatsd_host: str,
+                 dogstatsd_port: str,
+                 extra_tags: Optional[List[str]],
+                 verbose: bool = False) -> None:
         """
         Given a dogstatsd connection, provide an object for processing JVM garbage collector logs and emitting
         relevant events over dogstatsd. GC logs can be input via a log directory or STDIN.
@@ -27,11 +32,15 @@ class GCEventProcessor(object):
         self.stats = DogStatsd(host=dogstatsd_host, port=dogstatsd_port, constant_tags=extra_tags)
         self.verbose = verbose
 
-        self.last_time_and_size_info = None
-        self.last_minor_time = None
-        self.last_major_time = None
+        self.last_time_and_size_info = None  # type: Optional[Tuple[datetime, GCSizeInfo]]
+        self.last_minor_time = None  # type: datetime
+        self.last_major_time = None  # type: datetime
 
-    def process_log_directory(self, log_directory, glob_pattern="gc.log*", refresh_logfiles_seconds=60, sleep_seconds=1):
+    def process_log_directory(self,
+                              log_directory: str,
+                              glob_pattern: str = "gc.log*",
+                              refresh_logfiles_seconds: int = 60,
+                              sleep_seconds: int = 1) -> None:
         """
         Given a directory of GC logs, generate datadog stats from log lines as they are added to the newest gc* log file
 
@@ -49,7 +58,7 @@ class GCEventProcessor(object):
             for line in log_handler:
                 previous_record = self._process_line(line, previous_record)
 
-    def process_stdin(self):
+    def process_stdin(self) -> None:
         """
         Generate datadog stats from log lines from STDIN
         """
@@ -60,7 +69,7 @@ class GCEventProcessor(object):
                 break
             previous_record = self._process_line(inline, previous_record)
 
-    def _process_for_frequency_stats(self, stripped_line: str):
+    def _process_for_frequency_stats(self, stripped_line: str) -> None:
         line_time_match = ABSOLUTE_TIME_REGEX.match(stripped_line)
         if line_time_match:
             line_time = datetime.strptime(line_time_match.group(1), TIMEFORMAT)
@@ -75,7 +84,7 @@ class GCEventProcessor(object):
                     self.stats.histogram("garbagedog_time_between_young_gc", elapsed)
                 self.last_minor_time = line_time
 
-    def _process_eventline(self, stripped_line: str):
+    def _process_eventline(self, stripped_line: str) -> None:
         if stripped_line:
             if self.verbose:
                 print('.', end='', flush=True)
@@ -99,7 +108,7 @@ class GCEventProcessor(object):
                     self.stats.histogram("garbagedog_allocation_rate_histogram", bytes_added / elapsed)
                 self.last_time_and_size_info = (timestamp, size_info)
 
-    def _process_line(self, inline, previous_record):
+    def _process_line(self, inline: str, previous_record: str) -> str:
         stripped_line = inline.rstrip()
 
         conflated_relative = CONFLATED_RELATIVE_REGEX.match(stripped_line)
