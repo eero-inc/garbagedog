@@ -11,10 +11,10 @@ parser.add_argument('--tags',
                     help='Extra datadog tags, comma separated; ie "application:actorcluster, version:2017.07.27"')
 
 parser.add_argument('--dogstatsd-host',
-                    help='dogstatsd host (default=localhost)', default='localhost')
+                    help='dogstatsd host (default: %(default)s)', default='localhost')
 
 parser.add_argument('--dogstatsd-port', type=int,
-                    help='dogstatsd port (default=8125)', default=8125)
+                    help='dogstatsd port (default: %(default)s)', default=8125)
 
 parser.add_argument('--verbose', action='store_true',
                     help='Emit noisy messages on stdout')
@@ -23,14 +23,15 @@ parser.add_argument('--log-dir',
                     help='Read from this log dir instead of stdin')
 
 parser.add_argument('--glob-pattern',
-                    help='Glob pattern to select gc.log files', default="gc.log*")
+                    help='Glob pattern to select gc.log files (default: %(default)s)', default="gc.log*")
 
 parser.add_argument('--refresh-logfiles-seconds', type=int,
                     help='How often to recheck --log-dir if there are no logfiles found '
-                         'or no new loglines have been written', default=60)
+                         'or no new loglines have been written (default: %(default)s)', default=60)
 
 parser.add_argument('--sleep-seconds', type=int,
-                    help='How long to sleep between checking the logfile for new lines', default=1)
+                    help='How long to sleep between checking the logfile for new lines (default: %(default)s)',
+                    default=1)
 
 args = parser.parse_args()
 
