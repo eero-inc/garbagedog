@@ -1,2 +1,4 @@
+mock
 mypy
 pep8
+pytest
