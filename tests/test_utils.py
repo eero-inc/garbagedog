@@ -49,7 +49,7 @@ def test_gc_log_handler(tmpdir):
     gc_log = tmpdir.mkdir("logs").join("gc.log.1")
     gc_log.write("")
 
-    with GCLogHandler(os.path.join(tmpdir, "logs/")) as gc_log_handler:
+    with GCLogHandler(os.path.join(str(tmpdir), "logs/")) as gc_log_handler:
         log_line_generator = gc_log_handler.get_log_lines()
         gc_log.write("hello world")
         line = next(log_line_generator)
@@ -68,7 +68,7 @@ def test_gc_log_handler_newest_log(tmpdir):
     gc_log_2 = tmpdir.join("logs").join("gc.log.2")
     gc_log_2.write("")
 
-    with GCLogHandler(os.path.join(tmpdir, "logs/")) as gc_log_handler:
+    with GCLogHandler(os.path.join(str(tmpdir), "logs/")) as gc_log_handler:
         gc_log.write("foo")
         gc_log_2.write("bar")
         line = next(gc_log_handler.get_log_lines())
