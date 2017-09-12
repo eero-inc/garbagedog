@@ -22,19 +22,20 @@ optional arguments:
   --tags TAGS           Extra datadog tags, comma separated; ie
                         "application:actorcluster, version:2017.07.27"
   --dogstatsd-host DOGSTATSD_HOST
-                        dogstatsd host (default=localhost)
+                        dogstatsd host (default: localhost)
   --dogstatsd-port DOGSTATSD_PORT
-                        dogstatsd port (default=8125)
+                        dogstatsd port (default: 8125)
   --verbose             Emit noisy messages on stdout
   --log-dir LOG_DIR     Read from this log dir instead of stdin
   --glob-pattern GLOB_PATTERN
-                        Glob pattern to select gc.log files
+                        Glob pattern to select gc.log files (default: gc.log*)
   --refresh-logfiles-seconds REFRESH_LOGFILES_SECONDS
                         How often to recheck --log-dir if there are no
                         logfiles found or no new loglines have been written
+                        (default: 60)
   --sleep-seconds SLEEP_SECONDS
                         How long to sleep between checking the logfile for new
-                        lines
+                        lines (default: 1)
 ```
 
 ## Development
