@@ -40,13 +40,13 @@ class GCEventType(Enum):
     PS_YOUNG_GEN = ("PSYoungGen", "PSYoungGen", True)
     DEF_NEW = ("DefNew", "DefNew", True)
 
-    def __init__(self, stats_name, gc_text=None, is_stop_the_world=False):
+    def __init__(self, stats_name: str, gc_text: str = None, is_stop_the_world: bool = False) -> None:
         self.stats_name = stats_name
         self.gc_text = gc_text
         self.is_stop_the_world = is_stop_the_world
 
     @classmethod
-    def from_gc_line(cls, line):
+    def from_gc_line(cls, line: str) -> "GCEventType":
         """
         Given a GC log line, return the appropriate event type classification
 

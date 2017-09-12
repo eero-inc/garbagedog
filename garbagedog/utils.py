@@ -3,7 +3,8 @@ import glob
 import os
 import sys
 import time
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Generator
+from typing.io import TextIO
 
 from .constants import GCEventType, GCSizeInfo
 from .constants import SIZE_REGEX, TIMES_REGEX, TIMEFORMAT, THREE_ARROWS_REGEX
@@ -11,7 +12,12 @@ from .constants import SIZE_REGEX, TIMES_REGEX, TIMEFORMAT, THREE_ARROWS_REGEX
 
 class GCLogHandler(object):
 
-    def __init__(self, log_directory, glob_pattern="gc.log*", refresh_logfiles_seconds=60, sleep_seconds=1, verbose=False):
+    def __init__(self,
+                 log_directory: str,
+                 glob_pattern: str = "gc.log*",
+                 refresh_logfiles_seconds: int = 60,
+                 sleep_seconds: int = 1,
+                 verbose: bool = False) -> None:
         """
         Given a `log_directory`, provide an object for returning new GC logs in that directory. This object can
         be used as a contextmanager for convenience. For example:
@@ -34,10 +40,10 @@ class GCLogHandler(object):
         self.sleep_seconds = sleep_seconds
         self.verbose = verbose
 
-        self.log_file_name = None
-        self.log_file = None
-        self.last_new_line_seen = datetime.utcfromtimestamp(0)
-        self.previous_record = ""
+        self.log_file_name = None  # type: str
+        self.log_file = None  # type: TextIO
+        self.last_new_line_seen = datetime.utcfromtimestamp(0)  # type: datetime
+        self.previous_record = ""  # type: str
 
     def __enter__(self):
         self._load_newest_file()
@@ -50,7 +56,7 @@ class GCLogHandler(object):
     def __iter__(self):
         return self.get_log_lines()
 
-    def get_log_lines(self):
+    def get_log_lines(self) -> Generator:
         """
         Generator that returns the next log line. If there are no new log lines, this will sleep for `sleep_time` seconds.
         If the log file is not updated after `refresh_logfiles_seconds` and a new log file exists, the new log file will
@@ -78,7 +84,7 @@ class GCLogHandler(object):
             else:
                 time.sleep(self.sleep_seconds)
 
-    def _load_newest_file(self):
+    def _load_newest_file(self) -> None:
         printv("", self.verbose)
         printv("Last line seen {} seconds ago!"
                .format((datetime.now() - self.last_new_line_seen).total_seconds()), self.verbose)
