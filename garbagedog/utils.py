@@ -40,7 +40,6 @@ class GCLogHandler(object):
         self.sleep_seconds = sleep_seconds
         self.verbose = verbose
 
-        self.log_file_name = None  # type: str
         self.log_file = None  # type: TextIO
         self.last_new_line_seen = datetime.utcfromtimestamp(0)  # type: datetime
         self.previous_record = ""  # type: str
@@ -93,15 +92,15 @@ class GCLogHandler(object):
 
         if gc_logs:
             newest_log_name = max(gc_logs, key=os.path.getctime)
-            if newest_log_name != self.log_file_name:
-                if self.log_file:
-                    self.log_file.close()
-                printv("Now reading from: {}!".format(newest_log_name), self.verbose)
+            if self.log_file:
+                self.log_file.close()
+            printv("Now reading from: {}!".format(newest_log_name), self.verbose)
 
-                self.log_file = open(newest_log_name)
-                self.log_file.seek(0, 2)
-                self.log_file_name = newest_log_name
+            self.log_file = open(newest_log_name)
+            self.log_file.seek(0, 2)
             self.last_new_line_seen = datetime.now()
+        else:
+            self.log_file = None
 
 
 def parse_line_for_times(line: str) -> Optional[Tuple[GCEventType, float]]:
