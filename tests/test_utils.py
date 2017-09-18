@@ -4,8 +4,6 @@ import pytest
 import time
 
 from garbagedog.constants import GCEventType, GCSizeInfo
-
-from garbagedog.utils import GCLogHandler
 from garbagedog.utils import parse_line_for_sizes, parse_line_for_times
 
 
@@ -43,33 +41,3 @@ def test_parse_line_for_sizes_no_match():
     log_line = "2015-05-26T14:45:37.987-0200: 151.126: Nothing Happened"
 
     assert parse_line_for_sizes(log_line) is None
-
-def test_gc_log_handler(tmpdir):
-
-    gc_log = tmpdir.mkdir("logs").join("gc.log.1")
-    gc_log.write("")
-
-    with GCLogHandler(os.path.join(str(tmpdir), "logs/")) as gc_log_handler:
-        log_line_generator = gc_log_handler.get_log_lines()
-        gc_log.write("hello world")
-        line = next(log_line_generator)
-        assert line == "hello world"
-
-        gc_log.write("foo", mode="a")
-        line = next(log_line_generator)
-        assert line == "foo"
-
-def test_gc_log_handler_newest_log(tmpdir):
-
-    gc_log = tmpdir.mkdir("logs").join("gc.log.1")
-    gc_log.write("")
-    time.sleep(1)
-
-    gc_log_2 = tmpdir.join("logs").join("gc.log.2")
-    gc_log_2.write("")
-
-    with GCLogHandler(os.path.join(str(tmpdir), "logs/")) as gc_log_handler:
-        gc_log.write("foo")
-        gc_log_2.write("bar")
-        line = next(gc_log_handler.get_log_lines())
-        assert line == "bar"

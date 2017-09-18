@@ -1,4 +1,8 @@
+from pathlib import Path
+import time
+
 from mock import call, Mock
+from watchdog.observers import Observer
 
 from garbagedog.event_processor import GCEventProcessor
 
@@ -16,11 +20,96 @@ def test_process_line():
 
     gc_event_processor = GCEventProcessor("localhost", "1234", None)
     gc_event_processor.stats.timing = Mock()
+    gc_event_processor.previous_record = log_line
 
-    gc_event_processor._process_line(log_line_2, log_line)
+    gc_event_processor._process_line(log_line_2)
 
     gc_event_processor.stats.timing.assert_has_calls(
         [
             call('garbagedog_gc_event_duration', 0.06, tags=['stw:True', 'event_type:DefNew'])
+        ]
+    )
+
+def test_gc_log_handler(tmpdir):
+    gc_event_processor = GCEventProcessor("localhost", "1234", None)
+    gc_event_processor._process_line = Mock()
+
+    gc_log = tmpdir.mkdir("logs").join("gc.log.1")
+
+    observer = Observer()
+    observer.schedule(gc_event_processor, path=str(Path(tmpdir, "logs")), recursive=False)
+    observer.start()
+
+    gc_log.write("")
+    time.sleep(1)
+    gc_log.write("hello world", mode="a")
+    time.sleep(1)
+    gc_log.write("foo", mode="a")
+    time.sleep(1)
+
+    observer.stop()
+
+    gc_event_processor._process_line.assert_has_calls(
+        [
+            call("hello world"), call("foo")
+        ]
+    )
+
+def test_gc_log_handler_rotates_logs(tmpdir):
+    """
+    Verify that the watchdog handler switches to a new log file when logs are rotated
+    """
+    gc_event_processor = GCEventProcessor("localhost", "1234", None)
+    gc_event_processor._process_line = Mock()
+
+    gc_log = tmpdir.mkdir("logs").join("gc.log.1")
+
+    observer = Observer()
+    observer.schedule(gc_event_processor, path=str(Path(tmpdir, "logs")), recursive=False)
+    observer.start()
+
+    gc_log.write("")
+    time.sleep(1)
+    gc_log.write("hello world", mode="a")
+    time.sleep(1)
+
+    new_gc_log = tmpdir.join("logs").join("gc.log.2")
+    new_gc_log.write("foo")
+    time.sleep(1)
+
+    observer.stop()
+
+    gc_event_processor._process_line.assert_has_calls(
+        [
+            call("hello world"), call("foo")
+        ]
+    )
+
+def test_gc_log_handler_handles_restart(tmpdir):
+    """
+    Verify that the watchdog handler reopens a log file if it's rewritten
+    """
+    gc_event_processor = GCEventProcessor("localhost", "1234", None)
+    gc_event_processor._process_line = Mock()
+
+    gc_log = tmpdir.mkdir("logs").join("gc.log.1")
+
+    observer = Observer()
+    observer.schedule(gc_event_processor, path=str(Path(tmpdir, "logs")), recursive=False)
+    observer.start()
+
+    gc_log.write("")
+    time.sleep(1)
+    gc_log.write("hello world", mode="a")
+    time.sleep(1)
+
+    gc_log.write("foo")
+    time.sleep(1)
+
+    observer.stop()
+
+    gc_event_processor._process_line.assert_has_calls(
+        [
+            call("hello world"), call("foo")
         ]
     )

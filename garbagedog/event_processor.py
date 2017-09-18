@@ -1,25 +1,26 @@
 from datetime import datetime
-import glob
-import os
+from pathlib import Path
 import sys
 import time
 from typing import Tuple, Optional, List
+from typing.io import TextIO
 
 from datadog.dogstatsd.base import DogStatsd
+from watchdog.events import FileSystemEventHandler, FileModifiedEvent, DirModifiedEvent, FileSystemEvent
 
 from .constants import GCEventType, GCSizeInfo
 from .constants import ABSOLUTE_TIME_REGEX, RELATIVE_TIME_REGEX, CONFLATED_RELATIVE_REGEX, CONFLATED_ABSOLUTE_REGEX, TIMEFORMAT
-from .utils import GCLogHandler
-from .utils import parse_line_for_times, parse_line_for_sizes
+from .utils import parse_line_for_times, parse_line_for_sizes, printv
 
 
-class GCEventProcessor(object):
+class GCEventProcessor(FileSystemEventHandler):
 
     def __init__(self,
                  dogstatsd_host: str,
                  dogstatsd_port: str,
                  extra_tags: Optional[List[str]],
-                 verbose: bool = False) -> None:
+                 verbose: bool = False,
+                 glob_pattern: str = "gc.log*") -> None:
         """
         Given a dogstatsd connection, provide an object for processing JVM garbage collector logs and emitting
         relevant events over dogstatsd. GC logs can be input via a log directory or STDIN.
@@ -28,46 +29,83 @@ class GCEventProcessor(object):
         :param dogstatsd_port: dogstatsd connection port
         :param extra_tags: dogstatsd constant tags
         :param verbose: If True, print extra info when processing logs
+        :param glob_pattern: Pattern to find log files
         """
         self.stats = DogStatsd(host=dogstatsd_host, port=dogstatsd_port, constant_tags=extra_tags)
         self.verbose = verbose
+        self.glob_pattern = glob_pattern
 
         self.last_time_and_size_info = None  # type: Optional[Tuple[datetime, GCSizeInfo]]
         self.last_minor_time = None  # type: datetime
         self.last_major_time = None  # type: datetime
+        self.previous_record = ""  # type: str
 
-    def process_log_directory(self,
-                              log_directory: str,
-                              glob_pattern: str = "gc.log*",
-                              refresh_logfiles_seconds: int = 60,
-                              sleep_seconds: int = 1) -> None:
-        """
-        Given a directory of GC logs, generate datadog stats from log lines as they are added to the newest gc* log file
+        self.log_file = None  # type: TextIO
+        self.log_file_path = None  # type: Path
 
-        :param log_directory: Directory of find GC logs
-        :param glob_pattern: Pattern to match for garbage collection logs
-        :param refresh_logfiles_seconds: How often (in seconds) to check for newer rotated log files
-        :param sleep_seconds: How often (in seconds) to poll for new log lines
+    def on_created(self, event: FileSystemEvent) -> None:
         """
-        with GCLogHandler(log_directory,
-                          glob_pattern=glob_pattern,
-                          refresh_logfiles_seconds=refresh_logfiles_seconds,
-                          sleep_seconds=sleep_seconds,
-                          verbose=self.verbose) as log_handler:
-            previous_record = ""
-            for line in log_handler:
-                previous_record = self._process_line(line, previous_record)
+        Overriden watchdog method in FileSystemEventHandler
+
+        Handle created events from the filesystem
+        """
+        path = Path(event.src_path)
+        if not path.match(self.glob_pattern):
+            return
+
+        # A new log file has been created, start reading from it
+        self._open_file(path, from_beginning=True)
+        printv("Now reading from: {}!".format(path), self.verbose)
+        line = self.log_file.readline()
+        if line:
+            self._process_line(line)
+
+    def on_modified(self, event: FileSystemEvent) -> None:
+        """
+        Overriden watchdog method in FileSystemEventHandler
+
+        Handle modified events from the filesystem
+        """
+        if isinstance(event, FileModifiedEvent):
+            path = Path(event.src_path)
+            if not path.match(self.glob_pattern):
+                return
+
+            if self.log_file_path != path:
+                # An existing, unopened log file has been written to, open it and start reading from the end
+                self._open_file(path)
+                printv("Now reading from: {}!".format(path), self.verbose)
+            else:
+                # The currently opened log file has been written to, read the next line
+                line = self.log_file.readline()
+                if line:
+                    self._process_line(line)
+                else:
+                    # Nothing was read, re-open the log file and start reading from the beginning
+                    self._open_file(path, from_beginning=True)
+                    printv("Going to beginning of: {}!".format(path), self.verbose)
+                    line = self.log_file.readline()
+                    if line:
+                        self._process_line(line)
 
     def process_stdin(self) -> None:
         """
         Generate datadog stats from log lines from STDIN
         """
-        previous_record = ""
+        self.previous_record = ""
         while True:
             inline = sys.stdin.readline()
             if not inline:
                 break
-            previous_record = self._process_line(inline, previous_record)
+            previous_record = self._process_line(inline)
+
+    def _open_file(self, path: Path, from_beginning: bool = False) -> None:
+        if self.log_file:
+            self.log_file.close()
+        self.log_file = open(path)
+        self.log_file_path = path
+        if not from_beginning:
+            self.log_file.seek(0, 2)
 
     def _process_for_frequency_stats(self, stripped_line: str) -> None:
         line_time_match = ABSOLUTE_TIME_REGEX.match(stripped_line)
@@ -108,24 +146,24 @@ class GCEventProcessor(object):
                     self.stats.histogram("garbagedog_allocation_rate_histogram", bytes_added / elapsed)
                 self.last_time_and_size_info = (timestamp, size_info)
 
-    def _process_line(self, inline: str, previous_record: str) -> str:
+    def _process_line(self, inline: str) -> str:
         stripped_line = inline.rstrip()
 
         conflated_relative = CONFLATED_RELATIVE_REGEX.match(stripped_line)
         conflated_absolute = CONFLATED_ABSOLUTE_REGEX.match(stripped_line)
 
         if ABSOLUTE_TIME_REGEX.match(stripped_line) or RELATIVE_TIME_REGEX.match(stripped_line):
-            self._process_eventline(previous_record)
-            previous_record = stripped_line
+            self._process_eventline(self.previous_record)
+            self.previous_record = stripped_line
         elif conflated_relative:
-            previous_record = previous_record + conflated_relative.group(1)
-            self._process_eventline(previous_record)
-            previous_record = conflated_relative.group(2)
+            self.previous_record = self.previous_record + conflated_relative.group(1)
+            self._process_eventline(self.previous_record)
+            self.previous_record = conflated_relative.group(2)
         elif conflated_absolute:
-            previous_record = previous_record + conflated_absolute.group(1)
-            self._process_eventline(previous_record)
-            previous_record = conflated_absolute.group(2)
+            self.previous_record = self.previous_record + conflated_absolute.group(1)
+            self._process_eventline(self.previous_record)
+            self.previous_record = conflated_absolute.group(2)
         else:
-            previous_record = previous_record + " " + stripped_line
+            self.previous_record = self.previous_record + " " + stripped_line
 
-        return previous_record
+        return self.previous_record
