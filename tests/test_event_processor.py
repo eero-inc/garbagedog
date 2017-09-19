@@ -35,9 +35,10 @@ def test_gc_log_handler(tmpdir):
     gc_event_processor._process_line = Mock()
 
     gc_log = tmpdir.mkdir("logs").join("gc.log.1")
+    path = Path(str(tmpdir), "logs")
 
     observer = Observer()
-    observer.schedule(gc_event_processor, path=str(Path(tmpdir, "logs")), recursive=False)
+    observer.schedule(gc_event_processor, path=str(path), recursive=False)
     observer.start()
 
     gc_log.write("")
@@ -63,9 +64,10 @@ def test_gc_log_handler_rotates_logs(tmpdir):
     gc_event_processor._process_line = Mock()
 
     gc_log = tmpdir.mkdir("logs").join("gc.log.1")
+    path = Path(str(tmpdir), "logs")
 
     observer = Observer()
-    observer.schedule(gc_event_processor, path=str(Path(tmpdir, "logs")), recursive=False)
+    observer.schedule(gc_event_processor, path=str(path), recursive=False)
     observer.start()
 
     gc_log.write("")
@@ -93,9 +95,10 @@ def test_gc_log_handler_handles_restart(tmpdir):
     gc_event_processor._process_line = Mock()
 
     gc_log = tmpdir.mkdir("logs").join("gc.log.1")
+    path = Path(str(tmpdir), "logs")
 
     observer = Observer()
-    observer.schedule(gc_event_processor, path=str(Path(tmpdir, "logs")), recursive=False)
+    observer.schedule(gc_event_processor, path=str(path), recursive=False)
     observer.start()
 
     gc_log.write("")

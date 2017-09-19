@@ -102,7 +102,7 @@ class GCEventProcessor(FileSystemEventHandler):
     def _open_file(self, path: Path, from_beginning: bool = False) -> None:
         if self.log_file:
             self.log_file.close()
-        self.log_file = open(path)
+        self.log_file = open(str(path))
         self.log_file_path = path
         if not from_beginning:
             self.log_file.seek(0, 2)
