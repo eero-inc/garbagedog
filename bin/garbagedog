@@ -27,14 +27,6 @@ parser.add_argument('--log-dir',
 parser.add_argument('--glob-pattern',
                     help='Glob pattern to select gc.log files (default: %(default)s)', default="gc.log*")
 
-parser.add_argument('--refresh-logfiles-seconds', type=int,
-                    help='How often to recheck --log-dir if there are no logfiles found '
-                         'or no new loglines have been written (default: %(default)s)', default=60)
-
-parser.add_argument('--sleep-seconds', type=int,
-                    help='How long to sleep between checking the logfile for new lines (default: %(default)s)',
-                    default=1)
-
 args = parser.parse_args()
 
 parsed_tags = []

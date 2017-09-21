@@ -56,8 +56,7 @@ class GCEventProcessor(FileSystemEventHandler):
         # A new log file has been created, start reading from it
         self._open_file(path, from_beginning=True)
         printv("Now reading from: {}!".format(path), self.verbose)
-        line = self.log_file.readline()
-        if line:
+        for line in self.log_file:
             self._process_line(line)
 
     def on_modified(self, event: FileSystemEvent) -> None:
@@ -76,16 +75,16 @@ class GCEventProcessor(FileSystemEventHandler):
                 self._open_file(path)
                 printv("Now reading from: {}!".format(path), self.verbose)
             else:
-                # The currently opened log file has been written to, read the next line
-                line = self.log_file.readline()
-                if line:
+                # The currently opened log file has been written to, read to the end of the file
+                num_read = 0
+                for line in self.log_file:
                     self._process_line(line)
-                else:
+                    num_read += 1
+                if not num_read:
                     # Nothing was read, re-open the log file and start reading from the beginning
                     self._open_file(path, from_beginning=True)
                     printv("Going to beginning of: {}!".format(path), self.verbose)
-                    line = self.log_file.readline()
-                    if line:
+                    for line in self.log_file:
                         self._process_line(line)
 
     def process_stdin(self) -> None:
