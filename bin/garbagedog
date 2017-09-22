@@ -25,7 +25,7 @@ parser.add_argument('--log-dir',
                     help='Read from this log dir instead of stdin')
 
 parser.add_argument('--glob-pattern',
-                    help='Glob pattern to select gc.log files (default: %(default)s)', default="gc.log*")
+                    help='Glob pattern to select gc.log files (default: %(default)s)', default="*gc.log*")
 
 args = parser.parse_args()
 
@@ -33,7 +33,13 @@ parsed_tags = []
 if args.tags:
     parsed_tags = args.tags.replace(' ', '').split(',')
 
-gc_event_processor = GCEventProcessor(args.dogstatsd_host, args.dogstatsd_port, parsed_tags, args.verbose, glob_pattern=args.glob_pattern)
+gc_event_processor = GCEventProcessor(
+    args.dogstatsd_host,
+    args.dogstatsd_port,
+    parsed_tags,
+    verbose=args.verbose,
+    glob_pattern=args.glob_pattern
+)
 try:
     if args.log_dir:
         observer = Observer()

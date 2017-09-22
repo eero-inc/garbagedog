@@ -75,15 +75,20 @@ def test_gc_log_handler_rotates_logs(tmpdir):
     gc_log.write("hello world", mode="a")
     time.sleep(1)
 
+    # Start writing to new file
     new_gc_log = tmpdir.join("logs").join("gc.log.2")
     new_gc_log.write("foo")
+    time.sleep(1)
+
+    # At this point, file pointer should be updated to point to the end of gc.log.2
+    new_gc_log.write("bar", mode="a")
     time.sleep(1)
 
     observer.stop()
 
     gc_event_processor._process_line.assert_has_calls(
         [
-            call("hello world"), call("foo")
+            call("hello world"), call("bar")
         ]
     )
 
@@ -106,13 +111,18 @@ def test_gc_log_handler_handles_restart(tmpdir):
     gc_log.write("hello world", mode="a")
     time.sleep(1)
 
+    # Start writing to beginning of file again
     gc_log.write("foo")
+    time.sleep(1)
+
+    # At this point, file pointer should have seek'd to the end of the file
+    gc_log.write("bar", mode="a")
     time.sleep(1)
 
     observer.stop()
 
     gc_event_processor._process_line.assert_has_calls(
         [
-            call("hello world"), call("foo")
+            call("hello world"), call("bar")
         ]
     )

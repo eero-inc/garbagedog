@@ -6,21 +6,21 @@ from typing import Tuple, Optional, List
 from typing.io import TextIO
 
 from datadog.dogstatsd.base import DogStatsd
-from watchdog.events import FileSystemEventHandler, FileModifiedEvent, DirModifiedEvent, FileSystemEvent
+from watchdog.events import PatternMatchingEventHandler, FileModifiedEvent, DirModifiedEvent, FileSystemEvent
 
 from .constants import GCEventType, GCSizeInfo
 from .constants import ABSOLUTE_TIME_REGEX, RELATIVE_TIME_REGEX, CONFLATED_RELATIVE_REGEX, CONFLATED_ABSOLUTE_REGEX, TIMEFORMAT
 from .utils import parse_line_for_times, parse_line_for_sizes, printv
 
 
-class GCEventProcessor(FileSystemEventHandler):
+class GCEventProcessor(PatternMatchingEventHandler):
 
     def __init__(self,
                  dogstatsd_host: str,
                  dogstatsd_port: str,
                  extra_tags: Optional[List[str]],
                  verbose: bool = False,
-                 glob_pattern: str = "gc.log*") -> None:
+                 glob_pattern: str = "*gc.log*") -> None:
         """
         Given a dogstatsd connection, provide an object for processing JVM garbage collector logs and emitting
         relevant events over dogstatsd. GC logs can be input via a log directory or STDIN.
@@ -31,9 +31,9 @@ class GCEventProcessor(FileSystemEventHandler):
         :param verbose: If True, print extra info when processing logs
         :param glob_pattern: Pattern to find log files
         """
+        super().__init__(patterns=[glob_pattern])
         self.stats = DogStatsd(host=dogstatsd_host, port=dogstatsd_port, constant_tags=extra_tags)
         self.verbose = verbose
-        self.glob_pattern = glob_pattern
 
         self.last_time_and_size_info = None  # type: Optional[Tuple[datetime, GCSizeInfo]]
         self.last_minor_time = None  # type: datetime
@@ -50,14 +50,9 @@ class GCEventProcessor(FileSystemEventHandler):
         Handle created events from the filesystem
         """
         path = Path(event.src_path)
-        if not path.match(self.glob_pattern):
-            return
 
         # A new log file has been created, start reading from it
-        self._open_file(path, from_beginning=True)
-        printv("Now reading from: {}!".format(path), self.verbose)
-        for line in self.log_file:
-            self._process_line(line)
+        self._open_file(path)
 
     def on_modified(self, event: FileSystemEvent) -> None:
         """
@@ -67,25 +62,20 @@ class GCEventProcessor(FileSystemEventHandler):
         """
         if isinstance(event, FileModifiedEvent):
             path = Path(event.src_path)
-            if not path.match(self.glob_pattern):
-                return
 
             if self.log_file_path != path:
                 # An existing, unopened log file has been written to, open it and start reading from the end
                 self._open_file(path)
-                printv("Now reading from: {}!".format(path), self.verbose)
             else:
                 # The currently opened log file has been written to, read to the end of the file
                 num_read = 0
                 for line in self.log_file:
                     self._process_line(line)
                     num_read += 1
+
                 if not num_read:
-                    # Nothing was read, re-open the log file and start reading from the beginning
-                    self._open_file(path, from_beginning=True)
-                    printv("Going to beginning of: {}!".format(path), self.verbose)
-                    for line in self.log_file:
-                        self._process_line(line)
+                    # Nothing was read, seek to end of the log file
+                    self.log_file.seek(0, 2)
 
     def process_stdin(self) -> None:
         """
@@ -98,13 +88,13 @@ class GCEventProcessor(FileSystemEventHandler):
                 break
             previous_record = self._process_line(inline)
 
-    def _open_file(self, path: Path, from_beginning: bool = False) -> None:
+    def _open_file(self, path: Path) -> None:
         if self.log_file:
             self.log_file.close()
         self.log_file = open(str(path))
         self.log_file_path = path
-        if not from_beginning:
-            self.log_file.seek(0, 2)
+        self.log_file.seek(0, 2)
+        printv("Now reading from: {}!".format(path), self.verbose)
 
     def _process_for_frequency_stats(self, stripped_line: str) -> None:
         line_time_match = ABSOLUTE_TIME_REGEX.match(stripped_line)
