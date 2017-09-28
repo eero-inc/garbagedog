@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='garbagedog',
-    version='0.0.7',
+    version='0.0.8',
     description='Parse JVM gc.logs and emit stats over dogstatsd',
     author='Will Bertelsen',
     author_email='willb@eero.com',
