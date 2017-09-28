@@ -2,6 +2,8 @@
 
 import argparse
 
+from watchdog.observers import Observer
+
 from garbagedog.event_processor import GCEventProcessor
 
 parser = argparse.ArgumentParser(description='Parse JVM gc.logs and emit stats over dogstatsd',
@@ -23,15 +25,7 @@ parser.add_argument('--log-dir',
                     help='Read from this log dir instead of stdin')
 
 parser.add_argument('--glob-pattern',
-                    help='Glob pattern to select gc.log files (default: %(default)s)', default="gc.log*")
-
-parser.add_argument('--refresh-logfiles-seconds', type=int,
-                    help='How often to recheck --log-dir if there are no logfiles found '
-                         'or no new loglines have been written (default: %(default)s)', default=60)
-
-parser.add_argument('--sleep-seconds', type=int,
-                    help='How long to sleep between checking the logfile for new lines (default: %(default)s)',
-                    default=1)
+                    help='Glob pattern to select gc.log files (default: %(default)s)', default="*gc.log*")
 
 args = parser.parse_args()
 
@@ -39,13 +33,19 @@ parsed_tags = []
 if args.tags:
     parsed_tags = args.tags.replace(' ', '').split(',')
 
-gc_event_processor = GCEventProcessor(args.dogstatsd_host, args.dogstatsd_port, parsed_tags, args.verbose)
+gc_event_processor = GCEventProcessor(
+    args.dogstatsd_host,
+    args.dogstatsd_port,
+    parsed_tags,
+    verbose=args.verbose,
+    glob_pattern=args.glob_pattern
+)
 try:
     if args.log_dir:
-        gc_event_processor.process_log_directory(args.log_dir,
-                                                 glob_pattern=args.glob_pattern,
-                                                 refresh_logfiles_seconds=args.refresh_logfiles_seconds,
-                                                 sleep_seconds=args.sleep_seconds)
+        observer = Observer()
+        observer.schedule(gc_event_processor, path=args.log_dir, recursive=False)
+        observer.start()
+        observer.join()
     else:
         gc_event_processor.process_stdin()
 except KeyboardInterrupt:
