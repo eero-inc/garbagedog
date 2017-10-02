@@ -25,7 +25,7 @@ GCSizeInfo = namedtuple(
 
 
 class GCEventType(Enum):
-    UNKNOWN = ("Unknown", "Unknown", False)
+    UNKNOWN = ("Unknown")
     FULL_GC = ("FullGC", "Full GC", True)
     CONCURRENT_MODE_FAILURE = ("concurrent_mode_failure", "(concurrent mode failure", True)
     PROMOTION_FAILED = ("promotion_failed", "(promotion failed)", True)
