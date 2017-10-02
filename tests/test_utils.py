@@ -1,7 +1,4 @@
 import datetime
-import os
-import pytest
-import time
 
 from garbagedog.constants import GCEventType, GCSizeInfo
 from garbagedog.utils import parse_line_for_sizes, parse_line_for_times
@@ -16,10 +13,12 @@ def test_parse_line_for_times():
     assert event_type == GCEventType.DEF_NEW
     assert duration == 0.06
 
+
 def test_parse_line_for_times_no_match():
     log_line = "2015-05-26T14:45:37.987-0200: 151.126: Nothing Happened"
 
     assert parse_line_for_times(log_line) is None
+
 
 def test_parse_line_for_sizes():
     log_line = "2012-04-04T19:08:23.054+0000: 511001.548: [Full GC 511001.549: [CMS2012-04-04T19:08:48.906+0000: " \
@@ -36,6 +35,7 @@ def test_parse_line_for_sizes():
                                    whole_heap_begin_k=69005,
                                    whole_heap_end_k=69005,
                                    whole_heap_total_k=115372)
+
 
 def test_parse_line_for_sizes_no_match():
     log_line = "2015-05-26T14:45:37.987-0200: 151.126: Nothing Happened"

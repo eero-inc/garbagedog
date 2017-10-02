@@ -1,5 +1,5 @@
-from pathlib import Path
 import time
+from pathlib import Path
 
 from mock import call, Mock
 from watchdog.observers import Observer
@@ -91,6 +91,7 @@ def test_gc_log_handler_rotates_logs(tmpdir):
             call("hello world"), call("bar")
         ]
     )
+
 
 def test_gc_log_handler_handles_restart(tmpdir):
     """

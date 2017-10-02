@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from typing import Tuple, Optional
 
 from .constants import GCEventType, GCSizeInfo

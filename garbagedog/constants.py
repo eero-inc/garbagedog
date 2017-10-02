@@ -1,7 +1,7 @@
-from collections import namedtuple
 from enum import Enum
-import re
 
+import re
+from collections import namedtuple
 
 # These regexes are modified from https://github.com/Netflix-Skunkworks/gcviz, Copyright 2013 Netflix, under APACHE 2.0
 THREE_ARROWS_REGEX = re.compile("->.*->.*->", re.MULTILINE)
@@ -25,7 +25,7 @@ GCSizeInfo = namedtuple(
 
 
 class GCEventType(Enum):
-    UNKNOWN = ("Unknown")
+    UNKNOWN = ("Unknown", "Unknown", False)
     FULL_GC = ("FullGC", "Full GC", True)
     CONCURRENT_MODE_FAILURE = ("concurrent_mode_failure", "(concurrent mode failure", True)
     PROMOTION_FAILED = ("promotion_failed", "(promotion failed)", True)
