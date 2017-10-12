@@ -1,15 +1,15 @@
+import sys
 from datetime import datetime
 from pathlib import Path
-import sys
-import time
-from typing import Tuple, Optional, List
-from typing.io import TextIO
 
 from datadog.dogstatsd.base import DogStatsd
-from watchdog.events import PatternMatchingEventHandler, FileModifiedEvent, DirModifiedEvent, FileSystemEvent
+from typing import Tuple, Optional, List
+from typing.io import TextIO
+from watchdog.events import PatternMatchingEventHandler, FileModifiedEvent, FileSystemEvent
 
+from .constants import ABSOLUTE_TIME_REGEX, RELATIVE_TIME_REGEX, CONFLATED_RELATIVE_REGEX, CONFLATED_ABSOLUTE_REGEX, \
+    TIMEFORMAT
 from .constants import GCEventType, GCSizeInfo
-from .constants import ABSOLUTE_TIME_REGEX, RELATIVE_TIME_REGEX, CONFLATED_RELATIVE_REGEX, CONFLATED_ABSOLUTE_REGEX, TIMEFORMAT
 from .utils import parse_line_for_times, parse_line_for_sizes, printv
 
 

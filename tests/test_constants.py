@@ -8,6 +8,7 @@ def test_from_gc_line():
 
     assert GCEventType.from_gc_line(log_line) == GCEventType.DEF_NEW
 
+
 def test_from_gc_line_unknown():
     log_line = "2015-05-26T14:45:37.987-0200 Nothing Here"
 

@@ -1,7 +1,7 @@
-from collections import namedtuple
 from enum import Enum
-import re
 
+import re
+from collections import namedtuple
 
 # These regexes are modified from https://github.com/Netflix-Skunkworks/gcviz, Copyright 2013 Netflix, under APACHE 2.0
 THREE_ARROWS_REGEX = re.compile("->.*->.*->", re.MULTILINE)
