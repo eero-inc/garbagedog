@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
+import pkg_resources
+import sys
 
 from garbagedog.event_processor import GCEventProcessor
+
 
 parser = argparse.ArgumentParser(description='Parse JVM gc.logs and emit stats over dogstatsd',
                                  usage="garbagedog --log-dir /var/log/eero/")
@@ -33,7 +36,16 @@ parser.add_argument('--sleep-seconds', type=int,
                     help='How long to sleep between checking the logfile for new lines (default: %(default)s)',
                     default=1)
 
+
+parser.add_argument("--version", "-v", help="Print version information", action='store_true')
+
+
 args = parser.parse_args()
+
+if args.version:
+    version = pkg_resources.require("garbagedog")[0].version
+    print("garbagedog {}".format(version))
+    sys.exit(0)
 
 parsed_tags = []
 if args.tags:
