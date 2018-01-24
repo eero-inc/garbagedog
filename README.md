@@ -38,6 +38,12 @@ optional arguments:
                         lines (default: 1)
 ```
 
+
+## Grafana Examples
+Example Graphs
+![Grafana Graph Example](grafana-examples/grafana.png?raw=true "Grafana Graph Example")
+
+[See grafana json](grafana-examples/grafana-example.json)
 ## Development
 
 ```
