@@ -3,13 +3,14 @@
 import argparse
 
 import pkg_resources
+import sys
 from watchdog.observers import Observer
 
 from garbagedog.event_processor import GCEventProcessor
 
-version = pkg_resources.require("garbagedog")[0].version
+
 parser = argparse.ArgumentParser(description='Parse JVM gc.logs and emit stats over dogstatsd',
-                                 usage="garbagedog --log-dir /var/log/eero/", epilog="Version {}".format(version))
+                                 usage="garbagedog --log-dir /var/log/eero/")
 
 parser.add_argument('--tags',
                     help='Extra datadog tags, comma separated; ie "application:actorcluster, version:2017.07.27"')
@@ -29,7 +30,16 @@ parser.add_argument('--log-dir',
 parser.add_argument('--glob-pattern',
                     help='Glob pattern to select gc.log files (default: %(default)s)', default="*gc.log*")
 
+
+parser.add_argument("--version", "-v", help="Print version information", action='store_true')
+
+
 args = parser.parse_args()
+
+if args.version:
+    version = pkg_resources.require("garbagedog")[0].version
+    print("garbagedog {}".format(version))
+    sys.exit(0)
 
 parsed_tags = []
 if args.tags:
