@@ -11,6 +11,23 @@ Requires python 3.4
 `pip3 install git+ssh://git@github.com/eero-inc/garbagedog.git#egg=garbagedog`
 
 
+## JVM Setup
+Run your JVM app with the following flags:
+```
+-Xloggc:/var/log/eero/gc.log
+-XX:+UseGCLogFileRotation
+-XX:GCLogFileSize=64M
+-XX:NumberOfGCLogFiles=2
+-XX:+PrintGCDetails
+-XX:+PrintGCDateStamps
+-XX:+PrintGCApplicationConcurrentTime
+-XX:+PrintGCApplicationStoppedTime
+-XX:+PrintTenuringDistribution
+-XX:+PrintPromotionFailure
+-XX:+PrintHeapAtGC
+-XX:+PrintGCCause
+```
+
 ## Usage
 ```
 usage: garbagedog --log-dir /var/log/eero/
@@ -68,7 +85,7 @@ pytest
 ```
 
 
-## Building an executable pex
+## Building a standalone executable pex
 On your targeted environment check out the source and build
 ```
 git clone git@github.com:eero-inc/garbagedog.git
@@ -79,7 +96,6 @@ pip install pex
 ./build.sh
 
 ```
-
 
 ## About
 Made for eero Hack Week 2017 - ps we're hiring! https://eero.com/jobs
