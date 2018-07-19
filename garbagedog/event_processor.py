@@ -31,8 +31,8 @@ class GCEventProcessor(object):
         self.verbose = verbose
 
         self.last_time_and_size_info = None  # type: Optional[Tuple[datetime, GCSizeInfo]]
-        self.last_minor_time = None  # type: datetime
-        self.last_major_time = None  # type: datetime
+        self.last_minor_time = None  # type: Optional[datetime]
+        self.last_major_time = None  # type: Optional[datetime]
 
     def process_log_directory(self,
                               log_directory: str,
