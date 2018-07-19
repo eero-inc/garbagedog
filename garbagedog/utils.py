@@ -1,8 +1,8 @@
-from datetime import datetime
 import glob
 import os
-import sys
 import time
+from datetime import datetime
+
 from typing import Tuple, Optional, Generator
 from typing.io import TextIO
 

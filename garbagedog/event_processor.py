@@ -1,14 +1,12 @@
-from datetime import datetime
-import glob
-import os
 import sys
-import time
-from typing import Tuple, Optional, List
+from datetime import datetime
 
 from datadog.dogstatsd.base import DogStatsd
+from typing import Tuple, Optional, List
 
+from .constants import ABSOLUTE_TIME_REGEX, RELATIVE_TIME_REGEX, CONFLATED_RELATIVE_REGEX, CONFLATED_ABSOLUTE_REGEX, \
+    TIMEFORMAT
 from .constants import GCEventType, GCSizeInfo
-from .constants import ABSOLUTE_TIME_REGEX, RELATIVE_TIME_REGEX, CONFLATED_RELATIVE_REGEX, CONFLATED_ABSOLUTE_REGEX, TIMEFORMAT
 from .utils import GCLogHandler
 from .utils import parse_line_for_times, parse_line_for_sizes
 
@@ -94,6 +92,10 @@ class GCEventProcessor(object):
             time_info = parse_line_for_times(stripped_line)
             if time_info:
                 event_type, duration = time_info
+                if event_type == GCEventType.PROMOTION_FAILED:
+                    print(event_type)
+                    print(event_type.is_stop_the_world)
+                    print(event_type.stats_name)
                 tags = ["stw:{}".format(event_type.is_stop_the_world), "event_type:{}".format(event_type.stats_name)]
                 self.stats.timing("garbagedog_gc_event_duration", duration, tags=tags)
 
@@ -104,8 +106,18 @@ class GCEventProcessor(object):
                     event_time = timestamp
                     last_event_time, last_size_info = self.last_time_and_size_info
                     elapsed = (event_time - last_event_time).total_seconds()
-                    bytes_added = size_info.whole_heap_begin_k - last_size_info.whole_heap_end_k
+
+                    # Allocation rate
+                    bytes_added = abs(size_info.young_begin_k - last_size_info.young_end_k)
                     self.stats.histogram("garbagedog_allocation_rate_histogram", bytes_added / elapsed)
+
+                    # Promotion rate
+                    young_decreased = abs(size_info.young_begin_k - size_info.young_end_k)
+                    total_decreased = abs(size_info.whole_heap_begin_k - size_info.whole_heap_end_k)
+                    if total_decreased < young_decreased:
+                        promoted = abs(total_decreased - young_decreased)
+                        self.stats.histogram("garbagedog_promotion_rate_histogram", promoted / elapsed)
+
                 self.last_time_and_size_info = (timestamp, size_info)
 
     def _process_line(self, inline: str, previous_record: str) -> str:
