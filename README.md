@@ -1,4 +1,4 @@
-# garbagedog
+# garbagedog 🗑🐶
 Tail a JVM gc.log and emit stats over the dogstatsd [protocol](https://docs.datadoghq.com/developers/dogstatsd/).
 
 `garbagedog` monitors JVM gc logs and emits stats via dogstatsd.
