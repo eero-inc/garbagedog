@@ -78,7 +78,7 @@ Example Graphs
 
 [See grafana json](grafana-examples/grafana-example.json)
 ## Development
-
+### Running
 ```
 git clone git@github.com:eero-inc/garbagedog.git
 cd garbagedog
@@ -87,7 +87,7 @@ source ENV/bin/activate
 pip install -e .
 ```
 
-## Testing
+### Testing
 
 ```
 git clone git@github.com:eero-inc/garbagedog.git
@@ -101,7 +101,7 @@ pytest
 ```
 
 
-## Building a standalone executable pex
+### Building a standalone executable pex
 On your targeted environment check out the source and build
 ```
 git clone git@github.com:eero-inc/garbagedog.git
@@ -113,4 +113,4 @@ pip install pex
 ```
 
 ## About
-Made for eero Hack Week 2017 - ps we're hiring! https://eero.com/jobs
+Made for [eero](https://eero.com/) Hack Week 2017 - ps we're hiring! https://eero.com/jobs
