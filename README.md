@@ -9,7 +9,7 @@ You can use these stats to monitor continuously monitor your GC performance (tho
 
 The log parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
 
-[![Build Status](https://travis-ci.com/eero-inc/garbagedog.svg?branch=master)](https://travis-ci.com/eero-inc/garbagedog)
+[![Build Status](https://travis-ci.com/eero-inc/garbagedog.svg?branch=master)](https://travis-ci.com/eero-inc/garbagedog) [![Total Alerts](https://img.shields.io/lgtm/alerts/g/eero-inc/garbagedog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/eero-inc/garbagedog/alerts/)
 ## Installation
 
 Requires python 3.4
