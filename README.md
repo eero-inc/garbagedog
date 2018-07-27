@@ -1,12 +1,12 @@
 # garbagedog
-Tail a JVM gc.log and emit stats over the dogstatsd wire format.
+Tail a JVM gc.log and emit stats over the dogstatsd [protocol](https://docs.datadoghq.com/developers/dogstatsd/).
 
-`garbagedog` monitors JVM gc logs and emits stats over the dogstatsd wire format.
-Normally, these will be recieved by a local agent such as telegraf or datadog-agent.
+`garbagedog` monitors JVM gc logs and emits stats via dogstatsd.
+Normally, these will be recieved by a local agent such as [telegraf](https://github.com/influxdata/telegraf) or [datadog-agent](https://docs.datadoghq.com/agent/).
 
-You can use these stats to monitor continuously monitor your GC performance (though tuning is probably better left to more comprehensive tools).
+You can use these stats to monitor continuously monitor your GC performance (though active tuning is probably better left to more comprehensive tools).
 
-Parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
+The log parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
 
 ## Installation
 
@@ -110,7 +110,6 @@ virtualenv --python=python3 ENV
 source ENV/bin/activate
 pip install pex
 ./build.sh
-
 ```
 
 ## About
