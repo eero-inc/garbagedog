@@ -1,6 +1,10 @@
 # garbagedog
-Tail a JVM gc.log and emit stats over dogstatsd.
+Tail a JVM gc.log and emit stats over the dogstatsd wire format.
 
+`garbagedog` monitors JVM gc logs and emits stats over the dogstatsd wire format.
+Normally, these will be recieved by a local agent such as telegraf or datadog-agent.
+
+You can use these stats to monitor continuously monitor your GC performance (though tuning is probably better left to more comprehensive tools).
 
 Parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
 
@@ -55,6 +59,17 @@ optional arguments:
                         lines (default: 1)
 ```
 
+## Stats
+
+Timing by event type: `garbagedog_gc_event_duration`
+
+Allocation rate: `garbagedog_allocation_rate_histogram`
+
+Promotion rate: `garbagedog_promotion_rate_histogram`
+
+Old gen GC frequency: `garbagedog_time_between_old_gc`
+
+Young gen GC frequency: `garbagedog_time_between_young_gc`
 
 ## Grafana Examples
 Example Graphs
