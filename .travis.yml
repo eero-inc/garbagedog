@@ -4,4 +4,4 @@ python:
 install:
 - pip install -r dev_requirements.txt
 script:
-- ./build.sh
+- ./test.sh
