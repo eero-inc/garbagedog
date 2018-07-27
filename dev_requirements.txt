@@ -1,4 +1,4 @@
 mock
 mypy
-pep8
+pycodestyle
 pytest
