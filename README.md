@@ -57,6 +57,7 @@ optional arguments:
   --sleep-seconds SLEEP_SECONDS
                         How long to sleep between checking the logfile for new
                         lines (default: 1)
+  --version, -v         Print version information
 ```
 
 ## Stats
