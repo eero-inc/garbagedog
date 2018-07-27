@@ -1,12 +1,12 @@
-# garbagedog
-Tail a JVM gc.log and emit stats over the dogstatsd wire format.
+# garbagedog 🗑🐶
+Tail a JVM gc.log and emit stats over the dogstatsd [protocol](https://docs.datadoghq.com/developers/dogstatsd/).
 
-`garbagedog` monitors JVM gc logs and emits stats over the dogstatsd wire format.
-Normally, these will be recieved by a local agent such as telegraf or datadog-agent.
+`garbagedog` monitors JVM gc logs and emits stats via dogstatsd.
+Normally, these will be recieved by a local agent such as [telegraf](https://github.com/influxdata/telegraf) or [datadog-agent](https://docs.datadoghq.com/agent/).
 
-You can use these stats to monitor continuously monitor your GC performance (though tuning is probably better left to more comprehensive tools).
+You can use these stats to monitor continuously monitor your GC performance (though active tuning is probably better left to more comprehensive tools).
 
-Parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
+The log parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
 
 ## Installation
 
@@ -57,6 +57,7 @@ optional arguments:
   --sleep-seconds SLEEP_SECONDS
                         How long to sleep between checking the logfile for new
                         lines (default: 1)
+  --version, -v         Print version information
 ```
 
 ## Stats
@@ -77,7 +78,7 @@ Example Graphs
 
 [See grafana json](grafana-examples/grafana-example.json)
 ## Development
-
+### Running
 ```
 git clone git@github.com:eero-inc/garbagedog.git
 cd garbagedog
@@ -86,7 +87,7 @@ source ENV/bin/activate
 pip install -e .
 ```
 
-## Testing
+### Testing
 
 ```
 git clone git@github.com:eero-inc/garbagedog.git
@@ -96,11 +97,10 @@ source ENV/bin/activate
 pip install -r dev_requirements.txt
 
 ./test.sh
-pytest
 ```
 
 
-## Building a standalone executable pex
+### Building a standalone executable pex
 On your targeted environment check out the source and build
 ```
 git clone git@github.com:eero-inc/garbagedog.git
@@ -109,8 +109,7 @@ virtualenv --python=python3 ENV
 source ENV/bin/activate
 pip install pex
 ./build.sh
-
 ```
 
 ## About
-Made for eero Hack Week 2017 - ps we're hiring! https://eero.com/jobs
+Made for [eero](https://eero.com/) Hack Week 2017 - ps we're hiring! https://eero.com/jobs
