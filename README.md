@@ -1,3 +1,4 @@
+
 # garbagedog 🗑🐶
 Tail a JVM gc.log and emit stats over the dogstatsd [protocol](https://docs.datadoghq.com/developers/dogstatsd/).
 
@@ -8,6 +9,7 @@ You can use these stats to monitor continuously monitor your GC performance (tho
 
 The log parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
 
+[![Build Status](https://travis-ci.com/eero-inc/garbagedog.svg?branch=master)](https://travis-ci.com/eero-inc/garbagedog)
 ## Installation
 
 Requires python 3.4
