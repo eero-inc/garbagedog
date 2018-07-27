@@ -97,7 +97,6 @@ source ENV/bin/activate
 pip install -r dev_requirements.txt
 
 ./test.sh
-pytest
 ```
 
 
