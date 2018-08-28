@@ -14,10 +14,11 @@ The log parsing logic based on https://github.com/Netflix-Skunkworks/gcviz
 [![Build Status](https://travis-ci.com/eero-inc/garbagedog.svg?branch=master)](https://travis-ci.com/eero-inc/garbagedog) [![Total Alerts](https://img.shields.io/lgtm/alerts/g/eero-inc/garbagedog.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/eero-inc/garbagedog/alerts/)
 ## Installation
 
-Requires python 3.4
+`pip3 install git+ssh://git@github.com/eero-inc/garbagedog.git#egg=garbagedog` (requires python 3.4)
 
-`pip3 install git+ssh://git@github.com/eero-inc/garbagedog.git#egg=garbagedog`
+or 
 
+`wget https://github.com/eero-inc/garbagedog/releases/download/0.0.12/garbagedog-linux-gnu-0.0.12.pex`
 
 ## JVM Setup
 Run your JVM app with the following flags:
