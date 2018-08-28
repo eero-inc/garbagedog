@@ -118,3 +118,4 @@ pip install pex
 
 ## About
 Made for [eero](https://eero.com/) Hack Week 2017 - ps we're hiring! https://eero.com/jobs
+Not related to the retired RedHat project also called garbagedog
