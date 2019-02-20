@@ -9,4 +9,4 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 ARTIFACT=./dist/garbagedog-${OS}-${VERSION}.pex
-env PEX_VERBOSE=1 pex . -r requirements.txt -o ${ARTIFACT} -c garbagedog --disable-cache -f $PWD && echo Built to ${ARTIFACT}
+env PEX_VERBOSE=1 pex . -r requirements.txt -o ${ARTIFACT} -c garbagedog --python-shebang="/usr/bin/env python3" --disable-cache -f $PWD && echo Built to ${ARTIFACT}

@@ -87,7 +87,7 @@ Example Graphs
 ```
 git clone git@github.com:eero-inc/garbagedog.git
 cd garbagedog
-virtualenv --python=python3 ENV
+python3 -m venv ENV
 source ENV/bin/activate
 pip install -e .
 ```
@@ -97,7 +97,7 @@ pip install -e .
 ```
 git clone git@github.com:eero-inc/garbagedog.git
 cd garbagedog
-virtualenv --python=python3 ENV
+python3 -m venv ENV
 source ENV/bin/activate
 pip install -r dev_requirements.txt
 
@@ -110,7 +110,7 @@ On your targeted environment check out the source and build
 ```
 git clone git@github.com:eero-inc/garbagedog.git
 cd garbagedog
-virtualenv --python=python3 ENV
+python3 -m venv ENV
 source ENV/bin/activate
 pip install pex
 ./build.sh
