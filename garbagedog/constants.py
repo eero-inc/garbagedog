@@ -5,17 +5,17 @@ import re
 
 # These regexes are modified from https://github.com/Netflix-Skunkworks/gcviz, Copyright 2013 Netflix, under APACHE 2.0
 THREE_ARROWS_REGEX = re.compile("->.*->.*->", re.MULTILINE)
-SIZE_REGEX = re.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}[+]0000):"
-                        " ([0-9]+[.][0-9]{3}): .* ([0-9]+)K->([0-9]+)K\(([0-9]+)K\).*"
-                        " ([0-9]+)K->([0-9]+)K\(([0-9]+)K\)", re.MULTILINE)
+SIZE_REGEX = re.compile(r"^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}[+]0000):"
+                        r" ([0-9]+[.][0-9]{3}): .* ([0-9]+)K->([0-9]+)K\(([0-9]+)K\).*"
+                        r" ([0-9]+)K->([0-9]+)K\(([0-9]+)K\)", re.MULTILINE)
 
-ABSOLUTE_TIME_REGEX = re.compile("^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}[+]0000):", re.MULTILINE)
-RELATIVE_TIME_REGEX = re.compile("^[0-9]+[.][0-9]+: ")
+ABSOLUTE_TIME_REGEX = re.compile(r"^([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}[+]0000):", re.MULTILINE)
+RELATIVE_TIME_REGEX = re.compile(r"^[0-9]+[.][0-9]+: ")
 
-CONFLATED_RELATIVE_REGEX = re.compile("(^.*[0-9]+[.][0-9]+ secs])([0-9]+[.][0-9]+: .*$)", re.MULTILINE)
-CONFLATED_ABSOLUTE_REGEX = re.compile("(^.*)([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.*)", re.MULTILINE)
+CONFLATED_RELATIVE_REGEX = re.compile(r"(^.*[0-9]+[.][0-9]+ secs])([0-9]+[.][0-9]+: .*$)", re.MULTILINE)
+CONFLATED_ABSOLUTE_REGEX = re.compile(r"(^.*)([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.*)", re.MULTILINE)
 
-TIMES_REGEX = re.compile(".*real=([0-9][0-9]*[.][0-9][0-9]*) secs\]\s*", re.MULTILINE)
+TIMES_REGEX = re.compile(r".*real=([0-9][0-9]*[.][0-9][0-9]*) secs\]\s*", re.MULTILINE)
 
 TIMEFORMAT = "%Y-%m-%dT%H:%M:%S.%f%z"
 
