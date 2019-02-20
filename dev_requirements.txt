@@ -2,3 +2,4 @@ mock
 mypy
 pycodestyle
 pytest
+pex

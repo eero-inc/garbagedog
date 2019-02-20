@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='garbagedog',
-    version='0.0.12',
+    version='0.0.14',
     description='Parse JVM gc.logs and emit stats over dogstatsd',
     author='Will Bertelsen',
     author_email='willb@eero.com',
@@ -14,7 +14,8 @@ setup(
     ],
     python_requires='>=3.4',
     install_requires=[
-        'datadog',
+        'datadog>=0.26.0',
         'typing',
+        'setuptools>=40.8.0'
     ],
 )
